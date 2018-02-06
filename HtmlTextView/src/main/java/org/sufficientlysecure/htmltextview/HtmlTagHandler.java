@@ -27,11 +27,11 @@ import android.text.Spannable;
 import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.style.AlignmentSpan;
-import android.text.style.BulletSpan;
 import android.text.style.LeadingMarginSpan;
 import android.text.style.StrikethroughSpan;
 import android.text.style.TypefaceSpan;
 import android.util.Log;
+import android.widget.TextView;
 
 import org.xml.sax.XMLReader;
 
@@ -46,9 +46,11 @@ public class HtmlTagHandler implements Html.TagHandler {
     public static final String ORDERED_LIST = "HTML_TEXTVIEW_ESCAPED_OL_TAG";
     public static final String LIST_ITEM = "HTML_TEXTVIEW_ESCAPED_LI_TAG";
     private final TextPaint mTextPaint;
+    private final TextView mTextView;
 
-    public HtmlTagHandler(TextPaint textPaint) {
+    public HtmlTagHandler(TextPaint textPaint, TextView textView) {
         mTextPaint = textPaint;
+        mTextView = textView;
     }
 
     /**
@@ -57,12 +59,11 @@ public class HtmlTagHandler implements Html.TagHandler {
      * ourselves so before passing the string html into Html.fromHtml(), we can use this method to
      * replace the &lt;ul&gt; and &lt;li&gt; tags with tags of our own.
      *
-     * @see <a href="https://github.com/android/platform_frameworks_base/commit/8b36c0bbd1503c61c111feac939193c47f812190">Specific Android SDK Commit</a>
-     *
-     * @param html        String containing HTML, for example: "<b>Hello world!</b>"
+     * @param html String containing HTML, for example: "<b>Hello world!</b>"
      * @return html with replaced <ul> and <li> tags
+     * @see <a href="https://github.com/android/platform_frameworks_base/commit/8b36c0bbd1503c61c111feac939193c47f812190">Specific Android SDK Commit</a>
      */
-    String overrideTags(@Nullable String html){
+    String overrideTags(@Nullable String html) {
 
         if (html == null) return null;
 
@@ -108,9 +109,6 @@ public class HtmlTagHandler implements Html.TagHandler {
      */
     int tableTagLevel = 0;
 
-    private static final int indent = 10;
-    private static final int listItemIndent = indent * 2;
-    private static final BulletSpan bullet = new BulletSpan(indent);
     private ClickableTableSpan clickableTableSpan;
     private DrawTableLinkSpan drawTableLinkSpan;
 
@@ -203,37 +201,45 @@ public class HtmlTagHandler implements Html.TagHandler {
                 olNextIndex.pop();
             } else if (tag.equalsIgnoreCase(LIST_ITEM)) {
                 if (!lists.isEmpty()) {
+                    float em = mTextView.getTextSize();
                     if (lists.peek().equalsIgnoreCase(UNORDERED_LIST)) {
                         if (output.length() > 0 && output.charAt(output.length() - 1) != '\n') {
                             output.append("\n");
                         }
+
+                        BulletSpan bullet = new BulletSpan();
+                        bullet.setBulletRadius((int) (em * 0.125));
+                        bullet.setGapWidth((int) em);
+                        bullet.setTextHeight(mTextView.getTextSize());
                         // Nested BulletSpans increases distance between bullet and text, so we must prevent it.
-                        int bulletMargin = indent;
+                        int bulletMargin = bullet.getGapWidth();
                         if (lists.size() > 1) {
-                            bulletMargin = indent - bullet.getLeadingMargin(true);
-                            if (lists.size() > 2) {
-                                // This get's more complicated when we add a LeadingMarginSpan into the same line:
-                                // we have also counter it's effect to BulletSpan
-                                bulletMargin -= (lists.size() - 2) * listItemIndent;
-                            }
+                            bulletMargin -= bullet.getLeadingMargin(true);
+                            // This get's more complicated when we add a LeadingMarginSpan into the same line:
+                            // we have also counter it's effect to BulletSpan
+                            bulletMargin -= (lists.size() - 1) * bullet.getGapWidth();
                         }
-                        BulletSpan newBullet = new BulletSpan(bulletMargin);
+                        bullet.setGapWidth(bulletMargin);
                         end(output, Ul.class, false,
-                                new LeadingMarginSpan.Standard(listItemIndent * (lists.size() - 1)),
-                                newBullet);
+                                new LeadingMarginSpan.Standard((int) (em * lists.size())),
+                                bullet);
                     } else if (lists.peek().equalsIgnoreCase(ORDERED_LIST)) {
                         if (output.length() > 0 && output.charAt(output.length() - 1) != '\n') {
                             output.append("\n");
                         }
-                        int numberMargin = listItemIndent * (lists.size() - 1);
-                        if (lists.size() > 2) {
-                            // Same as in ordered lists: counter the effect of nested Spans
-                            numberMargin -= (lists.size() - 2) * listItemIndent;
+
+                        NumberSpan number = new NumberSpan(mTextPaint, olNextIndex.lastElement() - 1);
+                        number.setGapWidth((int) (em * 0.5));
+                        int numberMargin = number.getGapWidth();
+                        if (lists.size() > 1) {
+                            numberMargin -= number.getLeadingMargin(true);
+                            // This get's more complicated when we add a LeadingMarginSpan into the same line:
+                            numberMargin -= (lists.size() - 1) * number.getGapWidth() * 2 * 0.8;
                         }
-                        NumberSpan numberSpan = new NumberSpan(mTextPaint, olNextIndex.lastElement() - 1);
+                        number.setGapWidth(numberMargin);
                         end(output, Ol.class, false,
-                                new LeadingMarginSpan.Standard(numberMargin),
-                                numberSpan);
+                                new LeadingMarginSpan.Standard((int) (em * 0.8 * lists.size())),
+                                number);
                     }
                 }
             } else if (tag.equalsIgnoreCase("code")) {

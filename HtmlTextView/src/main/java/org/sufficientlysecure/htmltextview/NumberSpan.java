@@ -30,17 +30,27 @@ import android.text.style.LeadingMarginSpan;
  * the same leading margin.
  */
 public class NumberSpan implements LeadingMarginSpan {
+
+    private int mGapWidth;
     private final String mNumber;
     private final int mTextWidth;
 
     public NumberSpan(TextPaint textPaint, int number) {
-        mNumber = Integer.toString(number).concat(". ");
+        mNumber = Integer.toString(number).concat(".");
         mTextWidth = (int) textPaint.measureText(mNumber);
+    }
+
+    public int getGapWidth() {
+        return mGapWidth;
+    }
+
+    public void setGapWidth(int gapWidth) {
+        mGapWidth = gapWidth;
     }
 
     @Override
     public int getLeadingMargin(boolean first) {
-        return mTextWidth;
+        return mTextWidth + mGapWidth;
     }
 
     @Override

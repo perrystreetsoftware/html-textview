@@ -17,34 +17,34 @@
 
 package org.sufficientlysecure.htmltextview;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.support.v7.widget.AppCompatTextView;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * <p/>
+ * <p></p>
  * A {@link android.widget.TextView} that insert spaces around its text spans where needed to prevent
  * {@link IndexOutOfBoundsException} in {@link #onMeasure(int, int)} on Jelly Bean.
- * <p/>
+ * <p></p>
  * When {@link #onMeasure(int, int)} throws an exception, we try to fix the text by adding spaces
  * around spans, until it works again. We then try removing some of the added spans, to minimize the
  * insertions.
- * <p/>
+ * <p></p>
  * The fix is time consuming (a few ms, it depends on the size of your text), but it should only
  * happen once per text change.
- * <p/>
+ * <p></p>
  * See http://code.google.com/p/android/issues/detail?id=35466
- * <p/>
+ * <p></p>
  * From https://gist.github.com/pyricau/3424004 with fix from comments
  */
-public class JellyBeanSpanFixTextView extends TextView {
+public class JellyBeanSpanFixTextView extends AppCompatTextView {
 
     private static class FixingResult {
         public final boolean fixed;
