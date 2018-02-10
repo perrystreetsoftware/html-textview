@@ -9,7 +9,7 @@ import android.text.ParcelableSpan;
 import android.text.Spanned;
 import android.text.style.LeadingMarginSpan;
 
-public class BulletSpan implements LeadingMarginSpan, ParcelableSpan {
+public class BulletSpan implements LeadingMarginSpan {
 
     private int mGapWidth;
     private int mBulletRadius;
