@@ -54,14 +54,28 @@ public class HtmlTextView extends JellyBeanSpanFixTextView {
      * @see org.sufficientlysecure.htmltextview.HtmlTextView#setHtml(int)
      */
     public void setHtml(@RawRes int resId) {
-        setHtml(resId, null);
+        setHtml(resId, null, null);
+    }
+
+    /**
+     * @see org.sufficientlysecure.htmltextview.HtmlTextView#setHtml(int)
+     */
+    public void setHtml(@RawRes int resId, LocalLinkMovementMethod.OnLinkClickedListener listener) {
+        setHtml(resId, null, listener);
     }
 
     /**
      * @see org.sufficientlysecure.htmltextview.HtmlTextView#setHtml(String)
      */
     public void setHtml(@NonNull String html) {
-        setHtml(html, null);
+        setHtml(html, null, null);
+    }
+
+    /**
+     * @see org.sufficientlysecure.htmltextview.HtmlTextView#setHtml(String)
+     */
+    public void setHtml(@NonNull String html, LocalLinkMovementMethod.OnLinkClickedListener listener) {
+        setHtml(html, null, listener);
     }
 
     /**
@@ -73,10 +87,12 @@ public class HtmlTextView extends JellyBeanSpanFixTextView {
      * @param imageGetter for fetching images. Possible ImageGetter provided by this library:
      *                    HtmlLocalImageGetter and HtmlRemoteImageGetter
      */
-    public void setHtml(@RawRes int resId, @Nullable Html.ImageGetter imageGetter) {
+    public void setHtml(@RawRes int resId,
+                        @Nullable Html.ImageGetter imageGetter,
+                        @Nullable LocalLinkMovementMethod.OnLinkClickedListener listener) {
         InputStream inputStreamText = getContext().getResources().openRawResource(resId);
 
-        setHtml(convertStreamToString(inputStreamText), imageGetter);
+        setHtml(convertStreamToString(inputStreamText), imageGetter, listener);
     }
 
     /**
@@ -86,8 +102,11 @@ public class HtmlTextView extends JellyBeanSpanFixTextView {
      * @param html        String containing HTML, for example: "<b>Hello world!</b>"
      * @param imageGetter for fetching images. Possible ImageGetter provided by this library:
      *                    HtmlLocalImageGetter and HtmlRemoteImageGetter
+     * @param listener    Listener when links are clicked
      */
-    public void setHtml(@NonNull String html, @Nullable Html.ImageGetter imageGetter) {
+    public void setHtml(@NonNull String html,
+                        @Nullable Html.ImageGetter imageGetter,
+                        @Nullable LocalLinkMovementMethod.OnLinkClickedListener listener) {
         final HtmlTagHandler htmlTagHandler = new HtmlTagHandler(getPaint(), this);
         htmlTagHandler.setClickableTableSpan(clickableTableSpan);
         htmlTagHandler.setDrawTableLinkSpan(drawTableLinkSpan);
@@ -101,7 +120,9 @@ public class HtmlTextView extends JellyBeanSpanFixTextView {
         }
 
         // make links work
-        setMovementMethod(LocalLinkMovementMethod.getInstance());
+        LocalLinkMovementMethod movementMethod = LocalLinkMovementMethod.getInstance();
+        movementMethod.setOnLinkClickListener(listener);
+        setMovementMethod(movementMethod);
     }
 
     /**
