@@ -19,7 +19,7 @@
 
 package org.sufficientlysecure.htmltextview;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.text.Editable;
 import android.text.Html;
 import android.text.Layout;
